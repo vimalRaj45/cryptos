@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.vscode/
+.idea/
+*.pem
+*.key
+*.crt
+*.pub
+users.json
+signature.bin
+message.txt
+# Allow keys directory contents if needed, but usually better to keep private keys out of git
+# If the user wants to keep the 'keys' folder, I will comment those out.
+# However, keys/ folder exists in this project.

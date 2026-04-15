@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoSign - Digital Signature System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #1e1b4b;
+            --accent-color: #818cf8;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 95%;
+            max-width: 900px;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.5);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+        }
+
+        .nav-pills .nav-link {
+            color: var(--text-secondary);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .nav-pills .nav-link:hover {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--accent-color);
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .content-area {
+            padding: 3rem;
+        }
+
+        .form-control, .form-select {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .status-badge.show {
+            opacity: 1;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+        }
+
+        h2 {
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-pane {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        pre {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            color: #10b981;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow: auto;
+        }
+
+        /* Process Flow Styles */
+        .process-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .process-step {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .process-step.active {
+            background: rgba(79, 70, 229, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--card-bg);
+            border: 2px solid var(--text-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: var(--text-secondary);
+        }
+
+        .active .step-number {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .step-content h5 {
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .step-content p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .system-log {
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            color: #94a3b8;
+        }
+
+        .log-entry.info { color: #818cf8; }
+        .log-entry.success { color: #10b981; }
+        .log-entry.error { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <div class="row g-0">
+        <!-- Sidebar -->
+        <div class="col-md-3 sidebar">
+            <div class="logo-container">
+                <div class="logo-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                <h4 class="mb-0 fw-bold">CryptoSign</h4>
+            </div>
+            
+            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <button class="nav-link active" id="flow-tab" data-bs-toggle="pill" data-bs-target="#tab-flow" type="button" role="tab">
+                    <i class="bi bi-info-circle"></i> How it Works
+                </button>
+                <button class="nav-link" id="register-tab" data-bs-toggle="pill" data-bs-target="#tab-register" type="button" role="tab">
+                    <i class="bi bi-person-plus"></i> Register
+                </button>
+                <button class="nav-link" id="keys-tab" data-bs-toggle="pill" data-bs-target="#tab-keys" type="button" role="tab">
+                    <i class="bi bi-key"></i> Key Gen
+                </button>
+                <button class="nav-link" id="sign-tab" data-bs-toggle="pill" data-bs-target="#tab-sign" type="button" role="tab">
+                    <i class="bi bi-pencil-square"></i> Sign Message
+                </button>
+                <button class="nav-link" id="verify-tab" data-bs-toggle="pill" data-bs-target="#tab-verify" type="button" role="tab">
+                    <i class="bi bi-check2-circle"></i> Verify
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 content-area">
+            <div class="tab-content" id="v-pills-tabContent">
+                
+                <!-- How it Works -->
+                <div class="tab-pane fade show active" id="tab-flow" role="tabpanel">
+                    <h2>System Architecture</h2>
+                    <p class="text-secondary mb-4">Follow the step-by-step process to understand how Digital Signatures ensure authenticity and integrity.</p>
+                    
+                    <div class="process-container">
+                        <div class="process-step" id="step-1">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h5>Identity Registration</h5>
+                                <p>Register a unique username which serves as your identity within the ecosystem.</p>
+                            </div>
+                        </div>
+                        <div class="process-step" id="step-2">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h5>RSA Key Generation</h5>
+                                <p>Generates a 2048-bit Private Key (kept secret) and a Public Key (shared with everyone).</p>
+                            </div>
+                        </div>
+                        <div class="process-step" id="step-3">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h5>Message Signing</h5>
+                                <p>Hashes the message using SHA-256 and encrypts it with your Private Key using RSA-PSS padding.</p>
+                            </div>
+                        </div>
+                        <div class="process-step" id="step-4">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h5>Signature Verification</h5>
+                                <p>Anyone with your Public Key can verify that the message was indeed signed by you and remains untampered.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button class="btn btn-primary btn-sm" onclick="document.getElementById('register-tab').click()">Start Process <i class="bi bi-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Register User -->
+                <div class="tab-pane fade" id="tab-register" role="tabpanel">
+                    <h2>Register User</h2>
+                    <p class="text-secondary mb-4">Create a new identity for the digital signature system.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="reg-username" class="form-control" placeholder="e.g. alice_wonderland">
+                        <div class="form-text text-secondary">3-20 characters: letters, numbers, underscores.</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleAction('register')">Register Identity</button>
+                    <div id="register-status" class="status-badge alert"></div>
+                </div>
+
+                <!-- Generate Keys -->
+                <div class="tab-pane fade" id="tab-keys" role="tabpanel">
+                    <h2>Key Generation</h2>
+                    <p class="text-secondary mb-4">Generate RSA-2048 private and public key pair.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Select Registered User</label>
+                        <select id="keys-username" class="form-select user-dropdown">
+                            <option value="">Loading users...</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleAction('generate_keys')">Generate New Keys</button>
+                    <div id="keys-status" class="status-badge alert"></div>
+                    <div id="keys-output" class="mt-3 d-none">
+                        <p class="small text-secondary mb-1">Public Key Storage Location:</p>
+                        <code id="keys-path" class="text-info small d-block mb-2"></code>
+                        <p class="small text-secondary mb-1">Public Key Preview (PEM):</p>
+                        <pre id="keys-preview"></pre>
+                    </div>
+                </div>
+
+                <!-- Sign Message -->
+                <div class="tab-pane fade" id="tab-sign" role="tabpanel">
+                    <h2>Sign Message</h2>
+                    <p class="text-secondary mb-4">Digitally sign a message with your private key.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <select id="sign-username" class="form-select user-dropdown">
+                            <option value="">Select User...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea id="sign-message" class="form-control" rows="3" placeholder="Enter your secret message here..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleAction('sign')">Generate Digital Signature</button>
+                    <div id="sign-status" class="status-badge alert"></div>
+                    <div id="sign-output" class="mt-3 d-none">
+                        <p class="small text-secondary mb-1">Signing Payload (Pre-hash):</p>
+                        <pre id="sign-payload"></pre>
+                        <p class="small text-secondary mb-1">SHA-256 Digest:</p>
+                        <pre id="sign-hash"></pre>
+                        <p class="small text-info small"><i class="bi bi-info-circle"></i> This payload is then encrypted using your 2048-bit Private Key with RSA-PSS padding.</p>
+                    </div>
+                </div>
+
+                <!-- Verify Signature -->
+                <div class="tab-pane fade" id="tab-verify" role="tabpanel">
+                    <h2>Verify Signature</h2>
+                    <p class="text-secondary mb-4">Verify the authenticity and integrity of the last signed message.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Verifying as User</label>
+                        <select id="verify-username" class="form-select user-dropdown">
+                            <option value="">Select User...</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleAction('verify')">Verify Last Signature</button>
+                    <div id="verify-status" class="status-badge alert"></div>
+                    <div id="verify-output" class="mt-3 d-none">
+                        <div class="row small g-2">
+                            <div class="col-6"><span class="text-secondary">Owner Check:</span> <span id="v-owner" class="text-info"></span></div>
+                            <div class="col-6"><span class="text-secondary">Algorithm:</span> <span id="v-algo" class="text-info"></span></div>
+                            <div class="col-6"><span class="text-secondary">Padding:</span> <span id="v-padding" class="text-info"></span></div>
+                            <div class="col-6"><span class="text-secondary">Validity:</span> <span id="v-valid" class="text-info"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- System Activity Log -->
+            <div class="system-log">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 text-uppercase small fw-bold text-secondary">System Activity Log</h6>
+                    <span class="badge bg-dark text-secondary border border-secondary" id="log-status">Ready</span>
+                </div>
+                <div id="log-entries" style="max-height: 120px; overflow-y: auto;">
+                    <div class="log-entry info">> Application initialized. Waiting for user action...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Initial user load
+    document.addEventListener('DOMContentLoaded', updateUsers);
+
+    function addLog(msg, type = 'info') {
+        const container = document.getElementById('log-entries');
+        const entry = document.createElement('div');
+        const timestamp = new Date().toLocaleTimeString();
+        entry.className = `log-entry ${type}`;
+        entry.textContent = `[${timestamp}] > ${msg}`;
+        container.prepend(entry);
+        document.getElementById('log-status').textContent = type.toUpperCase();
+        document.getElementById('log-status').className = `badge ${type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-dark'} border`;
+    }
+
+    function setActiveStep(step) {
+        document.querySelectorAll('.process-step').forEach(el => el.classList.remove('active'));
+        if (step) document.getElementById(`step-${step}`).classList.add('active');
+    }
+
+    async function updateUsers() {
+        try {
+            const res = await fetch('/api/users');
+            const data = await res.json();
+            const dropdowns = document.querySelectorAll('.user-dropdown');
+            
+            dropdowns.forEach(select => {
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">Select User...</option>';
+                data.users.forEach(user => {
+                    const opt = document.createElement('option');
+                    opt.value = user;
+                    opt.textContent = user;
+                    if(user === currentVal) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+            addLog(`Loaded ${data.users.length} registered users.`);
+        } catch (e) { 
+            addLog("Failed to fetch users", "error");
+        }
+    }
+
+    async function handleAction(type) {
+        let url = '';
+        let payload = {};
+        let statusId = '';
+        let stepNum = 0;
+        
+        const showStatus = (id, msg, isError = false) => {
+            const el = document.getElementById(id);
+            el.className = `status-badge alert ${isError ? 'alert-danger' : 'alert-success'} show`;
+            el.innerHTML = `<i class="bi ${isError ? 'bi-exclamation-triangle' : 'bi-check-circle'}"></i> ${msg}`;
+            addLog(msg, isError ? 'error' : 'success');
+        };
+
+        if (type === 'register') {
+            statusId = 'register-status';
+            const username = document.getElementById('reg-username').value;
+            url = '/api/register';
+            payload = { username };
+            stepNum = 1;
+            addLog(`Attempting to register user: ${username}...`);
+        } else if (type === 'generate_keys') {
+            statusId = 'keys-status';
+            const username = document.getElementById('keys-username').value;
+            url = '/api/generate_keys';
+            payload = { username };
+            stepNum = 2;
+            addLog(`Generating RSA-2048 keys for ${username}...`);
+        } else if (type === 'sign') {
+            statusId = 'sign-status';
+            const username = document.getElementById('sign-username').value;
+            const message = document.getElementById('sign-message').value;
+            url = '/api/sign';
+            payload = { username, message };
+            stepNum = 3;
+            addLog(`Signing message for ${username} using private key...`);
+        } else if (type === 'verify') {
+            statusId = 'verify-status';
+            const username = document.getElementById('verify-username').value;
+            url = '/api/verify';
+            payload = { username };
+            stepNum = 4;
+            addLog(`Verifying signature using ${username}'s public key...`);
+        }
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                showStatus(statusId, data.message);
+                setActiveStep(stepNum);
+                
+                if (type === 'register') updateUsers();
+                
+                if (type === 'generate_keys') {
+                    document.getElementById('keys-output').classList.remove('d-none');
+                    document.getElementById('keys-path').textContent = data.path;
+                    document.getElementById('keys-preview').textContent = data.key_preview;
+                }
+                
+                if (type === 'sign') {
+                    document.getElementById('sign-output').classList.remove('d-none');
+                    document.getElementById('sign-hash').textContent = data.hash;
+                    document.getElementById('sign-payload').textContent = data.payload;
+                    addLog(`SHA-256 Hash generated: ${data.hash.substring(0, 32)}...`);
+                }
+
+                if (type === 'verify') {
+                    document.getElementById('verify-output').classList.remove('d-none');
+                    document.getElementById('v-owner').textContent = data.details.user_in_msg;
+                    document.getElementById('v-algo').textContent = data.details.hash_algorithm;
+                    document.getElementById('v-padding').textContent = data.details.padding;
+                    document.getElementById('v-valid').textContent = data.details.valid_for;
+                }
+            } else {
+                showStatus(statusId, data.message, true);
+                // Even on error, show details if they exist (expired)
+                if (type === 'verify' && data.details) {
+                    document.getElementById('verify-output').classList.remove('d-none');
+                    document.getElementById('v-valid').textContent = data.details.valid_for;
+                }
+            }
+        } catch (e) {
+            showStatus(statusId, 'Network error occurred', true);
+        }
+    }
+
+    // Refresh users when switching tabs
+    document.querySelectorAll('[data-bs-toggle="pill"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', (e) => {
+            updateUsers();
+            if (e.target.id === 'register-tab') setActiveStep(1);
+            if (e.target.id === 'keys-tab') setActiveStep(2);
+            if (e.target.id === 'sign-tab') setActiveStep(3);
+            if (e.target.id === 'verify-tab') setActiveStep(4);
+            if (e.target.id === 'flow-tab') setActiveStep(null);
+        });
+    });
+</script>
+
+</body>
+</html>
